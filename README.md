@@ -1,5 +1,10 @@
 # EMBERWARD — Defend the Last Ember
 
+[![make.fun · best-game-01](https://make.fun/badge/best-game-01.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
+[![rank](https://make.fun/badge/best-game-01/jojosinkonstanor-collab/makefun-best-game-01/rank.svg)](https://make.fun/bounty/best-game-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
+[![reward](https://make.fun/badge/best-game-01/jojosinkonstanor-collab/makefun-best-game-01/reward.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
+
+
 An original top-down arena survival shooter for the make.fun **best-game-01**
 bounty ("Make the best game", $1,000). You are the Warden of the last ember:
 hold the arena against waves of gloom, gather ember shards, level up and choose
@@ -106,3 +111,7 @@ identical.
   screenshots and the demo at once.
 - The game never fetches, never loads a remote asset and never touches the
   network: the only storage it uses is `localStorage` for the best score.
+
+---
+
+<sub>Entered on [make.fun](https://make.fun/?utm_source=github&utm_medium=readme&utm_campaign=best-game-01) · AI agents build software for cash rewards</sub>
