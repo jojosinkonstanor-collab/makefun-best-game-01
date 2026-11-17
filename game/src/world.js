@@ -8,6 +8,7 @@ import {
 } from './config.js';
 import { makeRng, angleTo, chance, clamp, dist2, pick, range } from './random.js';
 import { spawnEdgePosition, spawnEnemy, updateEnemy } from './enemies.js';
+import { canBeElite, makeElite } from './elites.js';
 import { Particles } from './particles.js';
 import { rollChoices } from './upgrades.js';
 
@@ -52,6 +53,7 @@ export class World {
     this.over = false;
     this.victory = false;
     this.emberTimer = 0;
+    this.eliteSpawned = false;
   }
 
   freshPlayer() {
@@ -78,6 +80,10 @@ export class World {
       regen: PLAYER.regen,
       nova: 0,
       ricochet: 0,
+      orbit: 0,
+      orbitAngle: 0,
+      chain: 0,
+      siphon: 0,
       aimAngle: -Math.PI / 2,
       invuln: 0,
       shield: 0,
@@ -104,6 +110,7 @@ export class World {
     }
     this.spawnQueue = queue;
     this.spawnTimer = 0.4;
+    this.eliteSpawned = false;
     if (isBossWave(n)) {
       const pos = spawnEdgePosition(this);
       this.boss = spawnEnemy(this, 'herald', pos.x, pos.y);
@@ -165,7 +172,13 @@ export class World {
           this.spawnTimer = Math.max(0.25, 0.9 - this.wave * 0.04);
           const kind = this.spawnQueue.shift();
           const pos = spawnEdgePosition(this);
-          spawnEnemy(this, kind, pos.x, pos.y);
+          const spawned = spawnEnemy(this, kind, pos.x, pos.y);
+          // One elite per wave (from wave 2): the first eligible spawn is it.
+          if (this.wave >= 2 && !this.eliteSpawned && canBeElite(kind)) {
+            makeElite(spawned);
+            this.eliteSpawned = true;
+            this.particles.text(spawned.x, spawned.y - 30, 'ELITE!', '#ffcf4d', 16);
+          }
         }
       } else if (this.enemies.length === 0) {
         this.waveState = 'clear';
@@ -184,9 +197,30 @@ export class World {
       }
     }
 
+    // --- orbiting flames (upgrade): fireballs circle the warden and burn ------
+    if (p.orbit > 0) {
+      p.orbitAngle += dt * 2.4;
+      for (const enemy of this.enemies) enemy.orbitHitT = Math.max(0, enemy.orbitHitT - dt);
+      for (let i = 0; i < p.orbit; i += 1) {
+        const a = p.orbitAngle + (i / p.orbit) * Math.PI * 2;
+        const ox = p.x + Math.cos(a) * 72;
+        const oy = p.y + Math.sin(a) * 72;
+        for (const enemy of this.enemies) {
+          const r = enemy.radius + 14;
+          if (enemy.spawnT >= 0.3 && enemy.orbitHitT <= 0 && dist2(ox, oy, enemy.x, enemy.y) < r * r) {
+            enemy.orbitHitT = 0.6;
+            this.damageEnemy(enemy, 12 + p.orbit * 4, false);
+          }
+        }
+      }
+    }
+
     // --- enemies ---------------------------------------------------------------
-    for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
-      updateEnemy(this, this.enemies[i], dt);
+    // Snapshot: one enemy's update can remove others (a bomber's blast can
+    // kill several foes at once), so never index the live array by position.
+    for (const enemy of [...this.enemies]) {
+      if (!this.enemies.includes(enemy)) continue;
+      updateEnemy(this, enemy, dt);
     }
 
     // --- bullets -----------------------------------------------------------------
@@ -373,6 +407,7 @@ export class World {
     const index = this.enemies.indexOf(enemy);
     if (index === -1) return;
     this.enemies.splice(index, 1);
+    const p = this.player;
     this.kills += 1;
     this.combo += 1;
     this.comboTimer = COMBO_WINDOW;
@@ -394,6 +429,42 @@ export class World {
         radius: PICKUPS.shard.radius, age: 0,
       });
     }
+    // A splitter breaks into two wisps where it fell.
+    if (enemy.kind === 'splitter') {
+      this.particles.text(enemy.x, enemy.y - 30, 'SPLIT!', '#4dd0e1', 15);
+      for (let i = 0; i < 2; i += 1) {
+        spawnEnemy(this, 'wisp', enemy.x + range(this.rng, -18, 18), enemy.y + range(this.rng, -18, 18));
+      }
+    }
+    // A bomber detonates: hurts the warden up close and burns nearby gloom.
+    if (enemy.kind === 'bomber') {
+      this.particles.burst(enemy.x, enemy.y, '#ff8a65', 40, 320, 0.7, 5);
+      this.particles.ring(enemy.x, enemy.y, '#ff8a65', 130, 0.5);
+      this.particles.shake(0.6);
+      const p2 = this.player;
+      if (dist2(enemy.x, enemy.y, p2.x, p2.y) < 110 * 110) this.damagePlayer(enemy.damage, enemy.x, enemy.y);
+      for (const other of [...this.enemies]) {
+        if (other !== enemy && dist2(enemy.x, enemy.y, other.x, other.y) < 110 * 110) {
+          this.damageEnemy(other, 25, false);
+        }
+      }
+    }
+    // Elites drop a heart and rapid fire on top of their shards.
+    if (enemy.elite) {
+      this.pickups.push({ kind: 'heart', x: enemy.x - 24, y: enemy.y, radius: PICKUPS.heart.radius, age: 0 });
+      this.pickups.push({ kind: 'rapid', x: enemy.x + 24, y: enemy.y, radius: PICKUPS.rapid.radius, age: 0 });
+      this.particles.text(enemy.x, enemy.y - 40, 'ELITE DOWN!', '#ffcf4d', 17);
+    }
+    // Ember Siphon: kills mend the warden. Chain Lightning: kills zap a near foe.
+    if (p.siphon > 0) p.hp = Math.min(p.maxHp, p.hp + p.siphon);
+    if (p.chain > 0) {
+      const target = this.nearestEnemy(enemy.x, enemy.y);
+      if (target && dist2(enemy.x, enemy.y, target.x, target.y) < 240 * 240) {
+        this.particles.burst(target.x, target.y, '#7ee0ff', 10, 200, 0.35, 3);
+        this.particles.text(target.x, target.y - 26, 'ZAP!', '#7ee0ff', 14);
+        this.damageEnemy(target, 10 + p.chain * 6, false);
+      }
+    }
     const roll = this.rng();
     if (enemy.kind === 'herald') {
       this.pickups.push({ kind: 'heart', x: enemy.x - 30, y: enemy.y, radius: PICKUPS.heart.radius, age: 0 });
@@ -407,7 +478,6 @@ export class World {
     }
 
     // Ember Nova: kills burst flame around the warden.
-    const p = this.player;
     if (p.nova > 0) {
       const novaDmg = 10 + p.nova * 8;
       const novaR = 110 + p.nova * 20;

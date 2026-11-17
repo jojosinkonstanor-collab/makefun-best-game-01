@@ -30,6 +30,9 @@ export function spawnEnemy(world, kind, x, y) {
     shootT: range(world.rng, 1.2, 2.4),
     burstT: 3,
     phase: 1,
+    elite: false,
+    blinkT: range(world.rng, 1.6, 2.8),
+    orbitHitT: 0,
   };
   nextId = 1 + nextId;
   world.enemies.push(enemy);
@@ -138,6 +141,36 @@ export function updateEnemy(world, enemy, dt) {
         enemy.stateT = range(world.rng, 0.8, 1.6);
       }
     }
+  } else if (enemy.kind === 'splitter') {
+    // A splitter wobbles after the warden like a wisp, but slower and heavier;
+    // it breaks into two wisps when it dies (see World.killEnemy).
+    const wobble = Math.sin(world.time * 2.4 + enemy.id * 1.3) * 0.5;
+    const a = angleTo(enemy.x, enemy.y, player.x, player.y) + wobble * 0.3;
+    enemy.x += Math.cos(a) * enemy.speed * dt;
+    enemy.y += Math.sin(a) * enemy.speed * dt;
+  } else if (enemy.kind === 'bomber') {
+    // A bomber lumbers at the warden and detonates when it gets close.
+    moveToward(enemy, player.x, player.y, enemy.speed, dt);
+    if (dPlayer < 64) {
+      world.killEnemy(enemy);
+      return;
+    }
+  } else if (enemy.kind === 'wraith') {
+    // A wraith chases fast, then blinks a short way toward the warden.
+    enemy.blinkT -= dt;
+    if (enemy.blinkT <= 0) {
+      enemy.blinkT = range(world.rng, 2.2, 3.2);
+      const a = angleTo(enemy.x, enemy.y, player.x, player.y);
+      world.particles.burst(enemy.x, enemy.y, '#ce93d8', 10, 140, 0.4, 3);
+      enemy.x += Math.cos(a) * 130;
+      enemy.y += Math.sin(a) * 130;
+      world.particles.burst(enemy.x, enemy.y, '#ce93d8', 10, 140, 0.4, 3);
+      world.audio.spitterShoot?.();
+    }
+    const wobble = Math.sin(world.time * 5 + enemy.id * 2.1) * 0.5;
+    const a = angleTo(enemy.x, enemy.y, player.x, player.y) + wobble * 0.25;
+    enemy.x += Math.cos(a) * enemy.speed * dt;
+    enemy.y += Math.sin(a) * enemy.speed * dt;
   } else if (enemy.kind === 'herald') {
     // Boss: slow chase, radial bursts, and it calls wisps when hurt.
     const frac = enemy.hp / enemy.maxHp;

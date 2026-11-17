@@ -62,6 +62,21 @@ export const UPGRADES = [
     desc: '+20% bullet size and speed', max: 4,
     apply: (p) => { p.bulletSpeed *= 1.2; p.bulletRadius *= 1.2; },
   },
+  {
+    id: 'orbitFlames', name: 'Orbiting Flames', icon: '◍',
+    desc: 'A fireball orbits you, burning foes it touches', max: 3,
+    apply: (p) => { p.orbit += 1; },
+  },
+  {
+    id: 'chainLightning', name: 'Chain Lightning', icon: '⚡',
+    desc: 'Kills zap a nearby foe with lightning', max: 3,
+    apply: (p) => { p.chain += 1; },
+  },
+  {
+    id: 'emberSiphon', name: 'Ember Siphon', icon: '✜',
+    desc: 'Kills restore +1 health', max: 3,
+    apply: (p) => { p.siphon += 1; },
+  },
 ];
 
 /** Pick `count` distinct upgrades the player has not maxed out yet. */

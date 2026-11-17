@@ -40,12 +40,17 @@ in code, so it plays fully offline.
 - **Goal:** survive 10 waves and destroy the Elder Herald on Wave 10. After the
   win you can keep playing in Endless mode while the waves keep scaling.
 - **Enemies:** Wisps (fast chasers), Dashers (telegraph then lunge), Spitters
-  (keep their distance and shoot), Husks (slow tanks), and the Herald boss
-  (radial bullet bursts, summons Wisps, three phases).
+  (keep their distance and shoot), Husks (slow tanks), Splitters (break into
+  two Wisps when slain), Bombers (lumber close, then detonate), Wraiths
+  (fast ghosts that blink toward you), and the Herald boss
+  (radial bullet bursts, summons Wisps, three phases). From Wave 2 every wave
+  also fields one golden **Elite** — triple health, triple score, double
+  shards, and it drops a heart plus rapid fire when it falls.
 - **Progress:** enemies drop ember shards — collect them to level up and pick
-  1 of 3 upgrades from a pool of 12 (damage, fire rate, multishot, pierce,
+  1 of 3 upgrades from a pool of 15 (damage, fire rate, multishot, pierce,
   ricochet, crit, nova bursts, magnet, regen, max health, move speed, bullet
-  size). Hearts, shields and rapid-fire pickups drop as well.
+  size, plus orbiting flames, chain lightning on kills, and ember siphon
+  healing on kills). Hearts, shields and rapid-fire pickups drop as well.
 - **Scoring:** kills build a combo multiplier (up to x3); score, wave, kills,
   best combo and accuracy are shown on the game-over and victory screens.
   Best score persists in `localStorage`.
@@ -82,8 +87,9 @@ game/
     audio.js             WebAudio SFX + generative music (no audio files)
     input.js             keyboard + mouse state
     particles.js         particles, floating text, screen shake, hit-stop
-    enemies.js           enemy kinds, AI, spawning
-    upgrades.js          the 12-upgrade level-up pool
+    enemies.js           enemy kinds, AI, spawning (incl. splitter, bomber, wraith)
+    elites.js            elite foes: one golden elite per wave from Wave 2
+    upgrades.js          the 15-upgrade level-up pool
     world.js             simulation: player, bullets, waves, XP, scoring
     render.js            all canvas drawing: arena, entities, HUD, screens
     game.js              screen state machine + fixed-step loop + autopilot

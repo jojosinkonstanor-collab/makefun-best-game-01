@@ -44,6 +44,11 @@ export const ENEMIES = {
   husk:   { name: 'Husk',   hp: 70,  radius: 23, speed: 42,  damage: 16, score: 100, xp: 3, cost: 3, colour: '#7dd87d', glow: '#3f9e4d' },
   spitter:{ name: 'Spitter',hp: 26,  radius: 14, speed: 64,  damage: 10, score: 150, xp: 2, cost: 2, colour: '#ff9f43', glow: '#e0651f' },
   dasher: { name: 'Dasher', hp: 34,  radius: 14, speed: 76,  damage: 14, score: 150, xp: 2, cost: 2, colour: '#ff5d73', glow: '#d92638' },
+  // v2 foes: a splitter that breaks into two wisps, a bomber that detonates up
+  // close, and a wraith that blinks across the arena.
+  splitter:{ name: 'Splitter', hp: 40, radius: 15, speed: 70, damage: 12, score: 200, xp: 2, cost: 2, colour: '#4dd0e1', glow: '#0097a7' },
+  bomber: { name: 'Bomber', hp: 30,  radius: 16, speed: 55,  damage: 18, score: 200, xp: 2, cost: 3, colour: '#ff8a65', glow: '#d84315' },
+  wraith: { name: 'Wraith', hp: 22,  radius: 13, speed: 150, damage: 10, score: 250, xp: 2, cost: 3, colour: '#ce93d8', glow: '#7b1fa2' },
   herald: { name: 'Gloom Herald', hp: 950, radius: 48, speed: 34, damage: 20, score: 5000, xp: 20, cost: 0, colour: '#e8e4ff', glow: '#7c6cff' },
 };
 
@@ -54,8 +59,9 @@ export function waveBudget(wave) {
 export function waveUnlocks(wave) {
   const kinds = ['wisp'];
   if (wave >= 2) kinds.push('dasher');
-  if (wave >= 3) kinds.push('spitter');
-  if (wave >= 4) kinds.push('husk');
+  if (wave >= 3) kinds.push('spitter', 'bomber');
+  if (wave >= 4) kinds.push('husk', 'splitter');
+  if (wave >= 6) kinds.push('wraith');
   return kinds;
 }
 export function isBossWave(wave) {

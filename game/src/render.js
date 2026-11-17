@@ -288,6 +288,73 @@ export class Renderer {
         ctx.beginPath();
         ctx.arc(r * 0.3, 0, r * 0.18, 0, Math.PI * 2);
         ctx.fill();
+      } else if (e.kind === 'splitter') {
+        // A teal double-lobed cell, wobbling as it drifts.
+        const wob = 1 + 0.1 * Math.sin(world.time * 6 + e.id);
+        ctx.fillStyle = def.colour;
+        ctx.beginPath();
+        ctx.arc(-r * 0.35, 0, r * 0.62 * wob, 0, Math.PI * 2);
+        ctx.arc(r * 0.35, 0, r * 0.62 * wob, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#083344';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.9, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(-r * 0.35, -r * 0.1, r * 0.14, 0, Math.PI * 2);
+        ctx.arc(r * 0.35, -r * 0.1, r * 0.14, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (e.kind === 'bomber') {
+        // A pulsing orange bomb with a sparking fuse.
+        const pulse = 1 + 0.16 * Math.sin(world.time * 8 + e.id);
+        ctx.fillStyle = def.colour;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#7f1d1d';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.7, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffe9a8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -r);
+        ctx.quadraticCurveTo(r * 0.5, -r * 1.5, r * 0.3, -r * 1.1);
+        ctx.stroke();
+        const spark = Math.sin(world.time * 24 + e.id) > 0 ? '#ffcf4d' : '#ff7b2f';
+        ctx.fillStyle = spark;
+        ctx.beginPath();
+        ctx.arc(r * 0.3, -r * 1.1, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (e.kind === 'wraith') {
+        // A translucent violet ghost with a trailing tail.
+        ctx.globalAlpha = 0.75;
+        ctx.fillStyle = def.colour;
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.arc(-r * 0.9, r * 0.3, r * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#1a1030';
+        ctx.beginPath();
+        ctx.arc(-r * 0.3, -r * 0.15, r * 0.2, 0, Math.PI * 2);
+        ctx.arc(r * 0.3, -r * 0.15, r * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(-r * 0.3, -r * 0.15, r * 0.08, 0, Math.PI * 2);
+        ctx.arc(r * 0.3, -r * 0.15, r * 0.08, 0, Math.PI * 2);
+        ctx.fill();
       } else if (e.kind === 'herald') {
         // The boss: a crowned ring of gloom with a burning core.
         ctx.rotate(Math.sin(world.time * 0.7) * 0.2);
@@ -320,6 +387,20 @@ export class Renderer {
       }
       ctx.restore();
 
+      // Elites wear a gold ring and a star, so the hunt reads at a glance.
+      if (e.elite) {
+        ctx.strokeStyle = '#ffcf4d';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, r + 6 + Math.sin(world.time * 4) * 2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = '#ffcf4d';
+        ctx.font = `bold 15px ${FONT}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('★', e.x, e.y - r - 14);
+      }
+
       // Hit flash and health bar.
       if (e.flash > 0) {
         ctx.globalAlpha = e.flash * 0.7;
@@ -347,6 +428,23 @@ export class Renderer {
       ctx.stroke();
     }
     glowCircle(ctx, p.x, p.y, 70, 'rgba(255,179,71,0.4)', 0.8);
+    // Orbiting flames circle the warden when the upgrade is taken.
+    if (p.orbit > 0) {
+      for (let i = 0; i < p.orbit; i += 1) {
+        const a = p.orbitAngle + (i / p.orbit) * Math.PI * 2;
+        const ox = p.x + Math.cos(a) * 72;
+        const oy = p.y + Math.sin(a) * 72;
+        glowCircle(ctx, ox, oy, 22, 'rgba(255,123,47,0.6)', 0.9);
+        ctx.fillStyle = '#ff7b2f';
+        ctx.beginPath();
+        ctx.arc(ox, oy, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffe9a8';
+        ctx.beginPath();
+        ctx.arc(ox, oy, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.aimAngle);
@@ -459,6 +557,16 @@ export class Renderer {
       ctx.fillText(`RAPID FIRE ${p.rapid.toFixed(0)}s`, 24, buffY);
       buffY += 18;
     }
+    if (p.orbit > 0) {
+      ctx.fillStyle = '#ff7b2f';
+      ctx.fillText(`ORBIT x${p.orbit}`, 24, buffY);
+      buffY += 18;
+    }
+    if (p.chain > 0) {
+      ctx.fillStyle = '#7ee0ff';
+      ctx.fillText(`CHAIN x${p.chain}`, 24, buffY);
+      buffY += 18;
+    }
 
     // Boss bar.
     if (world.boss) {
@@ -521,17 +629,20 @@ export class Renderer {
     ctx.font = `20px ${FONT}`;
     ctx.fillText('Defend the last ember. The gloom comes in waves —', 640, 258);
     ctx.fillText('burn it back with light, grow stronger, and break the Herald.', 640, 286);
+    ctx.fillStyle = '#ffcf4d';
+    ctx.font = `bold 15px ${FONT}`;
+    ctx.fillText('NEW FOES: SPLITTERS · BOMBERS · WRAITHS — AND ONE GOLDEN ELITE EVERY WAVE', 640, 312);
 
-    this.panel(ctx, 390, 316, 500, 150);
+    this.panel(ctx, 390, 330, 500, 150);
     ctx.fillStyle = '#fff';
     ctx.font = `bold 16px ${FONT}`;
-    ctx.fillText('HOW TO PLAY', 640, 344);
+    ctx.fillText('HOW TO PLAY', 640, 358);
     ctx.fillStyle = COLOURS.bone;
     ctx.font = `16px ${FONT}`;
-    ctx.fillText('WASD / Arrows — move      Mouse — aim', 640, 372);
-    ctx.fillText('Hold Click / Space — fire      P — pause      M — mute', 640, 398);
-    ctx.fillText('Gather ember shards to level up and choose upgrades.', 640, 424);
-    ctx.fillText('Survive to Wave 10 and destroy the Elder Herald to win.', 640, 448);
+    ctx.fillText('WASD / Arrows — move      Mouse — aim', 640, 386);
+    ctx.fillText('Hold Click / Space — fire      P — pause      M — mute', 640, 412);
+    ctx.fillText('Gather ember shards to level up and choose upgrades.', 640, 438);
+    ctx.fillText('Survive to Wave 10 and destroy the Elder Herald to win.', 640, 462);
 
     const pulse = 0.75 + 0.25 * Math.sin(this.time * 3);
     ctx.globalAlpha = pulse;

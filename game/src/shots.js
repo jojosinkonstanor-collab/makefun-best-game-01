@@ -105,10 +105,12 @@ export function stageShot(game, name, seed) {
 
   if (name === 'play') {
     // The Herald fight on wave 5: boss, radial bullets, adds, boss bar — the
-    // game at full tilt, with the warden near the middle of the frame.
+    // game at full tilt, with the warden near the middle of the frame. Wait
+    // until a new v2 foe (splitter or bomber) has joined the fight too.
     runUntilBusy(
       game, 180,
       (w) => w.wave >= 5 && w.boss !== null && w.enemies.length >= 4
+        && w.enemies.some((e) => e.kind === 'splitter' || e.kind === 'bomber')
         && Math.abs(w.player.x - 640) < 320 && Math.abs(w.player.y - 396) < 220,
       (w) => makeAutopilot(w, game.input), seed,
     );
