@@ -688,8 +688,9 @@ export class Renderer {
     const pulse = 0.75 + 0.25 * Math.sin(this.time * 3);
     ctx.globalAlpha = pulse;
     ctx.fillStyle = '#ffcf4d';
-    ctx.font = `bold 22px ${FONT}`;
-    ctx.fillText('PRESS R — PLAY AGAIN      C — KEEP GOING (ENDLESS)', 640, 536);
+    ctx.font = `bold 20px ${FONT}`;
+    ctx.fillText('PRESS R — PLAY AGAIN', 640, 530);
+    ctx.fillText('C — KEEP GOING (ENDLESS)', 640, 558);
     ctx.globalAlpha = 1;
   }
 

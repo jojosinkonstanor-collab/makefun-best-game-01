@@ -84,6 +84,7 @@ export class Game {
     }
     if (events & EVENT_OVER) {
       this.screen = SCREEN_OVER;
+      this.world.bannerTimer = 0;
       if (this.world.score > this.best) {
         this.best = this.world.score;
         this.saveBest();
@@ -91,6 +92,7 @@ export class Game {
       this.audio.stopMusic();
     } else if (events & EVENT_VICTORY) {
       this.screen = SCREEN_VICTORY;
+      this.world.bannerTimer = 0;
       if (this.world.score > this.best) {
         this.best = this.world.score;
         this.saveBest();
