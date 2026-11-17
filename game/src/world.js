@@ -9,6 +9,7 @@ import {
 import { makeRng, angleTo, chance, clamp, dist2, pick, range } from './random.js';
 import { spawnEdgePosition, spawnEnemy, updateEnemy } from './enemies.js';
 import { canBeElite, makeElite } from './elites.js';
+import { feverMult, isFever } from './fever.js';
 import { Particles } from './particles.js';
 import { rollChoices } from './upgrades.js';
 
@@ -54,6 +55,7 @@ export class World {
     this.victory = false;
     this.emberTimer = 0;
     this.eliteSpawned = false;
+    this.fever = false;
   }
 
   freshPlayer() {
@@ -84,6 +86,7 @@ export class World {
       orbitAngle: 0,
       chain: 0,
       siphon: 0,
+      thorns: 0,
       aimAngle: -Math.PI / 2,
       invuln: 0,
       shield: 0,
@@ -235,6 +238,8 @@ export class World {
       if (enemy.spawnT < 0.5) continue;
       const r = enemy.radius + p.radius - 4;
       if (dist2(enemy.x, enemy.y, p.x, p.y) < r * r) {
+        // Thorn Mail: attackers bleed when they touch the warden.
+        if (p.thorns > 0 && p.invuln <= 0) this.damageEnemy(enemy, p.thorns, false);
         this.damagePlayer(enemy.damage, enemy.x, enemy.y);
         // Push the enemy back a little so one touch is not a grind.
         const a = angleTo(p.x, p.y, enemy.x, enemy.y);
@@ -243,9 +248,16 @@ export class World {
       }
     }
 
-    // --- combo decay -------------------------------------------------------------------
+    // --- combo decay + fever -------------------------------------------------
     this.comboTimer -= dt;
     if (this.comboTimer <= 0) this.combo = 0;
+    const feverNow = isFever(this.combo);
+    if (feverNow && !this.fever) {
+      this.particles.text(p.x, p.y - 34, 'FEVER! SCORE x2', '#ffcf4d', 19);
+      this.particles.ring(p.x, p.y, '#ffcf4d', 150, 0.5);
+      this.audio.levelUp();
+    }
+    this.fever = feverNow;
 
     this.particles.update(dt);
     if (this.levelUpChoices) events |= EVENT_LEVELUP;
@@ -412,7 +424,7 @@ export class World {
     this.combo += 1;
     this.comboTimer = COMBO_WINDOW;
     this.bestCombo = Math.max(this.bestCombo, this.combo);
-    const mult = 1 + Math.min(this.combo, 20) * 0.1;
+    const mult = (1 + Math.min(this.combo, 20) * 0.1) * feverMult(this.combo);
     const gained = Math.round(enemy.score * mult);
     this.score += gained;
     this.particles.burst(enemy.x, enemy.y, ENEMIES[enemy.kind].glow, enemy.kind === 'herald' ? 60 : 16, 260, 0.6, 4);

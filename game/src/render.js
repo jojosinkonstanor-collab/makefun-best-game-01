@@ -82,6 +82,14 @@ export class Renderer {
 
     // Low-health red pulse + hurt flash.
     const p = world.player;
+    if (world.fever && !world.over) {
+      const pulse = 0.06 + 0.04 * Math.sin(this.time * 6);
+      const g = ctx.createRadialGradient(640, 360, 300, 640, 360, 720);
+      g.addColorStop(0, 'rgba(255,207,77,0)');
+      g.addColorStop(1, `rgba(255,207,77,${pulse})`);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, VIEW.width, VIEW.height);
+    }
     if (!world.over && p.hp > 0 && p.hp < p.maxHp * 0.3) {
       const pulse = 0.1 + 0.08 * Math.sin(this.time * 6);
       const g = ctx.createRadialGradient(640, 360, 240, 640, 360, 720);
@@ -540,7 +548,7 @@ export class Renderer {
       ctx.fillStyle = '#ffcf4d';
       ctx.font = `bold 18px ${FONT}`;
       ctx.textAlign = 'left';
-      ctx.fillText(`COMBO x${world.combo}`, 1120, 30);
+      ctx.fillText(world.fever ? `FEVER x${world.combo}!` : `COMBO x${world.combo}`, 1120, 30);
     }
 
     // Active buffs.

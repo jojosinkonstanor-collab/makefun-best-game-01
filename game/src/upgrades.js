@@ -77,6 +77,11 @@ export const UPGRADES = [
     desc: 'Kills restore +1 health', max: 3,
     apply: (p) => { p.siphon += 1; },
   },
+  {
+    id: 'thornMail', name: 'Thorn Mail', icon: '✵',
+    desc: 'Attackers take 6 damage when they touch you', max: 3,
+    apply: (p) => { p.thorns += 6; },
+  },
 ];
 
 /** Pick `count` distinct upgrades the player has not maxed out yet. */

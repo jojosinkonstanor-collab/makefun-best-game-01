@@ -31,7 +31,7 @@ export function xpForLevel(level) {
 }
 
 export const COMBO_WINDOW = 2.5;
-export const WAVE_CLEAR_HEAL = 10;
+export const WAVE_CLEAR_HEAL = 15;
 export const BREATHER_SECONDS = 4;
 export const VICTORY_WAVE = 10;
 

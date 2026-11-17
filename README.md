@@ -47,13 +47,14 @@ in code, so it plays fully offline.
   also fields one golden **Elite** — triple health, triple score, double
   shards, and it drops a heart plus rapid fire when it falls.
 - **Progress:** enemies drop ember shards — collect them to level up and pick
-  1 of 3 upgrades from a pool of 15 (damage, fire rate, multishot, pierce,
+  1 of 3 upgrades from a pool of 16 (damage, fire rate, multishot, pierce,
   ricochet, crit, nova bursts, magnet, regen, max health, move speed, bullet
-  size, plus orbiting flames, chain lightning on kills, and ember siphon
-  healing on kills). Hearts, shields and rapid-fire pickups drop as well.
-- **Scoring:** kills build a combo multiplier (up to x3); score, wave, kills,
-  best combo and accuracy are shown on the game-over and victory screens.
-  Best score persists in `localStorage`.
+  size, plus orbiting flames, chain lightning on kills, ember siphon
+  healing on kills, and thorn mail that hurts attackers on contact). Hearts, shields and rapid-fire pickups drop as well.
+- **Scoring:** kills build a combo multiplier (up to x3); at combo x8 the
+  ember catches **FEVER** and every kill scores double while the combo holds.
+  Score, wave, kills, best combo and accuracy are shown on the game-over and
+  victory screens. Best score persists in `localStorage`.
 - **Feel:** particles, screen shake, hit-stop on boss kills, floating damage
   numbers, damage flash, low-health pulse — and fully synthesised WebAudio
   sound effects plus a generative music loop that intensifies with the wave.
@@ -65,10 +66,12 @@ in code, so it plays fully offline.
 ## Screenshots
 
 `?shot=<scene>&seed=N` stages a deterministic scene from the real rules
-(autopilot plays, same seed = same frame) and sets `window.__shotReady`:
+(autopilot plays, same seed = same frame) and sets `window.__shotReady`.
+The cover is the boss fight — the game at full tilt — then the title,
+the level-up choice, and the game-over screen:
 
-- `1-title.jpg` — `?shot=title&seed=1`
-- `2-play.jpg` — `?shot=play&seed=1`
+- `1-play.jpg` — `?shot=play&seed=1`
+- `2-title.jpg` — `?shot=title&seed=1`
 - `3-levelup.jpg` — `?shot=levelup&seed=1`
 - `4-over.jpg` — `?shot=over&seed=1`
 
@@ -89,7 +92,8 @@ game/
     particles.js         particles, floating text, screen shake, hit-stop
     enemies.js           enemy kinds, AI, spawning (incl. splitter, bomber, wraith)
     elites.js            elite foes: one golden elite per wave from Wave 2
-    upgrades.js          the 15-upgrade level-up pool
+    fever.js             FEVER mode: combo x8 doubles all kill scores
+    upgrades.js          the 16-upgrade level-up pool
     world.js             simulation: player, bullets, waves, XP, scoring
     render.js            all canvas drawing: arena, entities, HUD, screens
     game.js              screen state machine + fixed-step loop + autopilot
